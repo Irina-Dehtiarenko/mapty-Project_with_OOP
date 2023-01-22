@@ -22,6 +22,7 @@ if (navigator.geolocation) {
       const coords = [latitude, longitude];
 
       const map = L.map('map').setView(coords, 13); //drugi parametr to zoom
+      // console.log(map);
 
       L.tileLayer(
         //  'https://tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',//nie wiem dlaczego nie działa
@@ -32,10 +33,27 @@ if (navigator.geolocation) {
         }
       ).addTo(map);
 
-      L.marker(coords)
-        .addTo(map)
-        .bindPopup('A pretty CSS3 popup.<br> Easily customizable.')
-        .openPopup();
+      // from leaflet - special object(on is like eventListener)
+      map.on('click', function (mapEvent) {
+        // mapEvent.latlng - coordinats
+        console.log(mapEvent);
+        const { lat, lng } = mapEvent.latlng;
+        // L.marker([lat, lng]).addTo(map).bindPopup('Workout').openPopup();
+        L.marker([lat, lng])
+          .addTo(map)
+          .bindPopup(
+            L.popup({
+              // changing of popup's view
+              maxWidth: 250,
+              minWidth: 100,
+              autoClose: false,
+              closeOnClick: false,
+              className: 'running-popup',
+            })
+          )
+          .setPopupContent('Workout')
+          .openPopup();
+      });
     },
     function () {
       alert('Could not get your position');
