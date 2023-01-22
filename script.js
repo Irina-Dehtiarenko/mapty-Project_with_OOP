@@ -18,6 +18,24 @@ if (navigator.geolocation) {
       const { latitude } = position.coords;
       const { longitude } = position.coords;
       console.log(`https://www.google.pl/maps/@${latitude},${longitude}z`);
+
+      const coords = [latitude, longitude];
+
+      const map = L.map('map').setView(coords, 13); //drugi parametr to zoom
+
+      L.tileLayer(
+        //  'https://tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',//nie wiem dlaczego nie działa
+        'https://tile.openstreetmap.org/{z}/{x}/{y}.png', //wykorzystuje open street map, chociaż są inne style
+        {
+          attribution:
+            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        }
+      ).addTo(map);
+
+      L.marker(coords)
+        .addTo(map)
+        .bindPopup('A pretty CSS3 popup.<br> Easily customizable.')
+        .openPopup();
     },
     function () {
       alert('Could not get your position');
