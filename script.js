@@ -11,6 +11,8 @@ const inputDuration = document.querySelector('.form__input--duration');
 const inputCadence = document.querySelector('.form__input--cadence');
 const inputElevation = document.querySelector('.form__input--elevation');
 
+let map, mapEvent;
+
 // Geolocation
 if (navigator.geolocation) {
   navigator.geolocation.getCurrentPosition(
@@ -21,7 +23,7 @@ if (navigator.geolocation) {
 
       const coords = [latitude, longitude];
 
-      const map = L.map('map').setView(coords, 13); //drugi parametr to zoom
+      map = L.map('map').setView(coords, 13); //drugi parametr to zoom
       // console.log(map);
 
       L.tileLayer(
@@ -34,25 +36,14 @@ if (navigator.geolocation) {
       ).addTo(map);
 
       // from leaflet - special object(on is like eventListener)
-      map.on('click', function (mapEvent) {
+      // handling clicks on map
+      map.on('click', function (mapE) {
+        mapEvent = mapE;
         // mapEvent.latlng - coordinats
         console.log(mapEvent);
-        const { lat, lng } = mapEvent.latlng;
-        // L.marker([lat, lng]).addTo(map).bindPopup('Workout').openPopup();
-        L.marker([lat, lng])
-          .addTo(map)
-          .bindPopup(
-            L.popup({
-              // changing of popup's view
-              maxWidth: 250,
-              minWidth: 100,
-              autoClose: false,
-              closeOnClick: false,
-              className: 'running-popup',
-            })
-          )
-          .setPopupContent('Workout')
-          .openPopup();
+
+        form.classList.remove('hidden');
+        inputDistance.focus();
       });
     },
     function () {
@@ -60,3 +51,38 @@ if (navigator.geolocation) {
     }
   );
 }
+
+form.addEventListener('submit', function (e) {
+  e.preventDefault();
+
+  // Clear input fields
+  inputDistance.value =
+    inputDuration.value =
+    inputCadence.value =
+    inputElevation.value =
+      '';
+
+  // display marker
+
+  const { lat, lng } = mapEvent.latlng;
+  // L.marker([lat, lng]).addTo(map).bindPopup('Workout').openPopup();
+  L.marker([lat, lng])
+    .addTo(map)
+    .bindPopup(
+      L.popup({
+        // changing of popup's view
+        maxWidth: 250,
+        minWidth: 100,
+        autoClose: false,
+        closeOnClick: false,
+        className: 'running-popup',
+      })
+    )
+    .setPopupContent('Workout')
+    .openPopup();
+});
+
+inputType.addEventListener('change', function () {
+  inputElevation.closest('.form__row').classList.toggle('form__row--hidden');
+  inputCadence.closest('.form__row').classList.toggle('form__row--hidden');
+});
