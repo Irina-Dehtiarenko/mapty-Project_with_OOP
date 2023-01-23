@@ -13,76 +13,96 @@ const inputElevation = document.querySelector('.form__input--elevation');
 
 let map, mapEvent;
 
-// Geolocation
-if (navigator.geolocation) {
-  navigator.geolocation.getCurrentPosition(
-    function (position) {
-      const { latitude } = position.coords;
-      const { longitude } = position.coords;
-      console.log(`https://www.google.pl/maps/@${latitude},${longitude}z`);
+class App {
+  #map;
+  #mapEvent;
 
-      const coords = [latitude, longitude];
+  constructor() {
+    this._getPosition();
+    form.addEventListener('submit', this._newWorkout.bind(this));
+    inputType.addEventListener('change', this._toggleElevationField);
+  }
 
-      map = L.map('map').setView(coords, 13); //drugi parametr to zoom
-      // console.log(map);
-
-      L.tileLayer(
-        //  'https://tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',//nie wiem dlaczego nie działa
-        'https://tile.openstreetmap.org/{z}/{x}/{y}.png', //wykorzystuje open street map, chociaż są inne style
-        {
-          attribution:
-            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  _getPosition() {
+    // Geolocation
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        this._loadMap.bind(this),
+        function () {
+          alert('Could not get your position');
         }
-      ).addTo(map);
-
-      // from leaflet - special object(on is like eventListener)
-      // handling clicks on map
-      map.on('click', function (mapE) {
-        mapEvent = mapE;
-        // mapEvent.latlng - coordinats
-        console.log(mapEvent);
-
-        form.classList.remove('hidden');
-        inputDistance.focus();
-      });
-    },
-    function () {
-      alert('Could not get your position');
+      );
     }
-  );
+  }
+
+  _loadMap(position) {
+    const { latitude } = position.coords;
+    const { longitude } = position.coords;
+    console.log(`https://www.google.pl/maps/@${latitude},${longitude}z`);
+
+    const coords = [latitude, longitude];
+    console.log(this);
+    this.#map = L.map('map').setView(coords, 13); //drugi parametr to zoom
+    // console.log(map);
+
+    L.tileLayer(
+      //  'https://tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',//nie wiem dlaczego nie działa
+      'https://tile.openstreetmap.org/{z}/{x}/{y}.png', //wykorzystuje open street map, chociaż są inne style
+      {
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      }
+    ).addTo(this.#map);
+
+    // from leaflet - special object(on is like eventListener)
+    // handling clicks on map
+    this.#map.on('click', this._showForm.bind(this));
+  }
+
+  _showForm(mapE) {
+    this.#mapEvent = mapE;
+    // mapEvent.latlng - coordinats
+    console.log(this.#mapEvent);
+
+    form.classList.remove('hidden');
+    inputDistance.focus();
+  }
+
+  _toggleElevationField() {
+    inputElevation.closest('.form__row').classList.toggle('form__row--hidden');
+    inputCadence.closest('.form__row').classList.toggle('form__row--hidden');
+  }
+
+  _newWorkout(e) {
+    e.preventDefault();
+
+    // Clear input fields
+    inputDistance.value =
+      inputDuration.value =
+      inputCadence.value =
+      inputElevation.value =
+        '';
+
+    // display marker
+
+    const { lat, lng } = this.#mapEvent.latlng;
+    // L.marker([lat, lng]).addTo(map).bindPopup('Workout').openPopup();
+    L.marker([lat, lng])
+      .addTo(this.#map)
+      .bindPopup(
+        L.popup({
+          // changing of popup's view
+          maxWidth: 250,
+          minWidth: 100,
+          autoClose: false,
+          closeOnClick: false,
+          className: 'running-popup',
+        })
+      )
+      .setPopupContent('Workout')
+      .openPopup();
+  }
 }
 
-form.addEventListener('submit', function (e) {
-  e.preventDefault();
-
-  // Clear input fields
-  inputDistance.value =
-    inputDuration.value =
-    inputCadence.value =
-    inputElevation.value =
-      '';
-
-  // display marker
-
-  const { lat, lng } = mapEvent.latlng;
-  // L.marker([lat, lng]).addTo(map).bindPopup('Workout').openPopup();
-  L.marker([lat, lng])
-    .addTo(map)
-    .bindPopup(
-      L.popup({
-        // changing of popup's view
-        maxWidth: 250,
-        minWidth: 100,
-        autoClose: false,
-        closeOnClick: false,
-        className: 'running-popup',
-      })
-    )
-    .setPopupContent('Workout')
-    .openPopup();
-});
-
-inputType.addEventListener('change', function () {
-  inputElevation.closest('.form__row').classList.toggle('form__row--hidden');
-  inputCadence.closest('.form__row').classList.toggle('form__row--hidden');
-});
+const app = new App();
+// app._getPosition();
