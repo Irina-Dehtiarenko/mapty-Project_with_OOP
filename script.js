@@ -7,7 +7,7 @@ class Workout {
   date = new Date();
   // some examples, do not created the ID on your own
   id = (Date.now() + '').slice(-10);
-
+  clicks = 0;
   constructor(coords, distance, duration) {
     // taki wariant jeśli modernizowany JS jeszcze nie działa
     // this.date = ...
@@ -24,6 +24,11 @@ class Workout {
     this.description = `${this.type[0].toUpperCase()}${this.type.slice(1)} on ${
       months[this.date.getMonth()]
     } ${this.date.getDate()}`;
+  }
+
+  // example fine feture
+  click() {
+    this.clicks++;
   }
 }
 
@@ -83,6 +88,7 @@ const inputElevation = document.querySelector('.form__input--elevation');
 class App {
   // modern part of JS
   #map;
+  #mapZoomLevel = 13;
   #mapEvent;
   #workouts = [];
 
@@ -90,6 +96,7 @@ class App {
     this._getPosition();
     form.addEventListener('submit', this._newWorkout.bind(this));
     inputType.addEventListener('change', this._toggleElevationField);
+    containerWorkouts.addEventListener('click', this._moveToPopup.bind(this));
   }
 
   _getPosition() {
@@ -107,11 +114,11 @@ class App {
   _loadMap(position) {
     const { latitude } = position.coords;
     const { longitude } = position.coords;
-    console.log(`https://www.google.pl/maps/@${latitude},${longitude}z`);
+    // console.log(`https://www.google.pl/maps/@${latitude},${longitude}z`);
 
     const coords = [latitude, longitude];
-    console.log(this);
-    this.#map = L.map('map').setView(coords, 13); //drugi parametr to zoom
+    // console.log(this);
+    this.#map = L.map('map').setView(coords, this.#mapZoomLevel); //drugi parametr to zoom
     // console.log(map);
 
     L.tileLayer(
@@ -131,7 +138,7 @@ class App {
   _showForm(mapE) {
     this.#mapEvent = mapE;
     // mapEvent.latlng - coordinats
-    console.log(this.#mapEvent);
+    // console.log(this.#mapEvent);
 
     form.classList.remove('hidden');
     inputDistance.focus();
@@ -204,7 +211,7 @@ class App {
     // Add new object to workout array
     this.#workouts.push(workout);
 
-    console.log(workout);
+    // console.log(workout);
 
     // Render workout on map as marker
     this._renderWorkoutMarker(workout);
@@ -283,6 +290,28 @@ class App {
           `;
     }
     form.insertAdjacentHTML('afterend', html);
+  }
+
+  _moveToPopup(e) {
+    const workoutEl = e.target.closest('.workout');
+    // console.log(workoutEl);
+
+    if (!workoutEl) return;
+
+    const workout = this.#workouts.find(
+      work => work.id === workoutEl.dataset.id
+    );
+    console.log(workout);
+
+    this.#map.setView(workout.coords, this.#mapZoomLevel, {
+      animate: true,
+      pan: {
+        duration: 1,
+      },
+    });
+
+    // using the publick interface
+    workout.click();
   }
 }
 
