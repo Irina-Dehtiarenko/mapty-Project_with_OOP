@@ -1,7 +1,5 @@
 'use strict';
 
-// let map, mapEvent;
-
 class Workout {
   // modern part of JS
   date = new Date();
@@ -9,9 +7,6 @@ class Workout {
   id = (Date.now() + '').slice(-10);
   clicks = 0;
   constructor(coords, distance, duration) {
-    // taki wariant jeśli modernizowany JS jeszcze nie działa
-    // this.date = ...
-    // this.id = ...
     this.coords = coords; //[lat, lng]
     this.distance = distance; //in km
     this.duration = duration; //in min
@@ -26,7 +21,6 @@ class Workout {
     } ${this.date.getDate()}`;
   }
 
-  // example fine feture
   click() {
     this.clicks++;
   }
@@ -38,7 +32,6 @@ class Running extends Workout {
   constructor(coords, distance, duration, cadence) {
     super(coords, distance, duration);
     this.cadence = cadence;
-    // this.type = 'running';
     this.calcPace();
     this._setDescription();
   }
@@ -56,7 +49,6 @@ class Cycling extends Workout {
   constructor(coords, distance, duration, elevationGain) {
     super(coords, distance, duration);
     this.elevationGain = elevationGain;
-    // this.type = 'cycling'
     this.calcSpeed();
     this._setDescription();
   }
@@ -67,10 +59,6 @@ class Cycling extends Workout {
     return this.speed;
   }
 }
-
-// EXPEREMENT
-// const run1 = new Running([39, -12], 5.2, 24, 178);
-// const cycling1 = new Cycling([39, -12], 27, 95, 523);
 
 ///////////////////////////////////////////////////////////
 // APPLICATION ARCITECTURE
@@ -118,36 +106,26 @@ class App {
   _loadMap(position) {
     const { latitude } = position.coords;
     const { longitude } = position.coords;
-    // console.log(`https://www.google.pl/maps/@${latitude},${longitude}z`);
 
     const coords = [latitude, longitude];
 
-    this.#map = L.map('map').setView(coords, this.#mapZoomLevel); //drugi parametr to zoom
+    this.#map = L.map('map').setView(coords, this.#mapZoomLevel);
 
-    L.tileLayer(
-      //  'https://tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',//nie wiem dlaczego nie działa
-      'https://tile.openstreetmap.org/{z}/{x}/{y}.png', //wykorzystuje open street map, chociaż są inne style
-      {
-        attribution:
-          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      }
-    ).addTo(this.#map);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    }).addTo(this.#map);
 
-    // from leaflet - special object(on is like eventListener)
     // handling clicks on map
     this.#map.on('click', this._showForm.bind(this));
 
-    // ustawiamy markery na podstawie danych pobranych z local storage
     this.#workouts.forEach(work => {
-      // wyświetlamy workouts na stronie
       this._renderWorkoutMarker(work);
     });
   }
 
   _showForm(mapE) {
     this.#mapEvent = mapE;
-    // mapEvent.latlng - coordinats
-
     form.classList.remove('hidden');
     inputDistance.focus();
   }
@@ -198,9 +176,7 @@ class App {
         return alert('Inputs have to be positive numbers!');
 
       workout = new Running([lat, lng], distance, duration, cadence);
-      // this.#workouts.push(workout);
     }
-
     // If workout cycling, create cycling object
 
     if (type === 'cycling') {
@@ -233,7 +209,6 @@ class App {
   }
 
   _renderWorkoutMarker(workout) {
-    // L.marker([lat, lng]).addTo(map).bindPopup('Workout').openPopup();
     L.marker(workout.coords)
       .addTo(this.#map)
       .bindPopup(
@@ -316,35 +291,27 @@ class App {
         duration: 1,
       },
     });
-
-    // using the publick interface
-    // workout.click();
   }
 
   _setLocalStorage() {
     localStorage.setItem('workouts', JSON.stringify(this.#workouts));
   }
 
-  // wykona się odrazu po załadowaniu strony
   _getLocalStorage() {
     const data = JSON.parse(localStorage.getItem('workouts'));
 
     if (!data) return;
 
-    // ustawiamy tablicę z workouts na tablicę, pobraną z local Storage
     this.#workouts = data;
 
     this.#workouts.forEach(work => {
-      // wyświetlamy workouts na stronie
       this._renderWorkout(work);
     });
   }
   reset() {
-    // usuwa dane z local storage
     localStorage.removeItem('workouts');
     location.reload();
   }
 }
 
 const app = new App();
-// app._getPosition();
